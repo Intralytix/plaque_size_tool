@@ -5,6 +5,8 @@ import os
 import pandas as pd
 from PIL import Image, ImageStat, ImageEnhance
 import util
+from datetime import datetime
+
 
 out_dir_path = './out'
 small_plaques = False
@@ -151,26 +153,44 @@ def get_image_paths(image, directory):
 
 
 def write_images(out_dir, output_image, binary_image, high_contrast_image, image_path):
-    cv2.imwrite(f'{out_dir}/out_{os.path.split(image_path)[1]}', output_image)
+    now = datetime.now() # current date and time
+    fileTime = now.strftime("%Y-%m-%d_%H-%M-%S")
+
+    syncPath = f'{out_dir}/out_{fileTime}_{os.path.split(image_path)[1]}'
+    
+    cv2.imwrite(syncPath, output_image)
     # cv2.imwrite(f'{out_dir}/out_red-{os.path.split(image_path)[1]}', output_image_red)
     #cv2.imwrite(f'{out_dir}/contrast-{os.path.split(image_path)[1]}', high_contrast_image)
     #cv2.imwrite(f'{out_dir}/binary-{os.path.split(image_path)[1]}', binary_image)
+    return syncPath
 
-
-def write_data(out_dir, image_path, green_df, red_df, other_df):
-    write_one_data(out_dir, image_path, 'green', green_df)
+def write_data(out_dir, image_path, green_df, red_df, other_df, syncPath = 'out/out_0_0.jpg'):
+    
+    dataPath = write_one_data(out_dir, image_path, syncPath, green_df)
+    return dataPath
+    #write_one_data(out_dir, image_path, 'green', green_df)
     #write_one_data(out_dir, image_path, 'red', red_df)
     #write_one_data(out_dir, image_path, 'other', other_df)
 
 
-def write_one_data(out_dir, image_path, prefix, df):
-    image_file_name = os.path.split(image_path)[1]
+def write_one_data(out_dir, image_path, syncPath, df):
+
+    #image_file_name = os.path.split(image_path)[1]
+    image_file_name = os.path.split(syncPath)[1]
+    
     image_name = os.path.splitext(image_file_name)[0]
+
+
+    path = ''
     if df.empty != True:
-        df.to_csv(path_or_buf=f'{out_dir}/data-{prefix}-{image_name}.csv', index = False,
+        #path = f'{out_dir}/data-{prefix}-{image_name}.csv'
+        path = f'{out_dir}/{image_name}.csv'
+
+        df.to_csv(path_or_buf=path, index = False,
                   #columns=['INDEX_COL', 'AREA_PXL', 'DIAMETER_PXL', 'AREA_MM2', 'DIAMETER_MM'])
                 columns=['INDEX_COL', 'AREA_PXL', 'DIAMETER_PXL', 'AREA_MM2', 'DIAMETER_MM','ENCL_CENTER'])
                   #columns=['INDEX_COL', 'AREA_PXL', 'DIAMETER_PXL', 'PERIMETER_PXL', 'ENCL_CENTER', 'ENCL_DIAMETER_PXL', 'AREA_MM2', 'DIAMETER_MM'])
+    return path
 
 
 def calc_AREA_PXL_diff(contour_df):
@@ -411,7 +431,7 @@ def main(args):
 
         if not os.path.exists(out_dir_path):
             os.makedirs(out_dir_path)
-        write_images(out_dir_path, output, binary_image, high_contrast, image_path)
+        syncPath = write_images(out_dir_path, output, binary_image, high_contrast, image_path)
 
         #Delete the temporary file
         if os.path.exists(image_path + '.tmp' + os.path.splitext(image_path)[1]):
@@ -419,11 +439,11 @@ def main(args):
 
         # format float values
         # green_df_copy['ENCL_DIAMETER_MM'] = green_df_copy['ENCL_DIAMETER_MM'].apply(lambda x: f"{x:.2f}")
-        write_data(out_dir_path, image_path, green_df_copy, red_df_copy, other_df)
+        dataPath = write_data(out_dir_path, image_path, green_df_copy, red_df_copy, other_df, syncPath=syncPath)
         print("Process completed successfully")
         print(str(len(green_df_copy)) + ' plaques were found\n')
         
-        resList.append(len(green_df_copy))
+        resList.append((len(green_df_copy),syncPath,dataPath))
 
     return resList
 

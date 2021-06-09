@@ -57,15 +57,16 @@ while True:
         #print(CALL)
         #os.system(CALL)
         foundList = pst.main(args) #raw output ./out/data-green-FILE.csv, edited image in ./out/out_FILENAME
-        numFound = foundList[0]
-        print(numFound,'plaques found')
+        numFound, imgPath, dataPath = foundList[0]
+        
+        #print(numFound,'plaques found')
         if numFound > 0:
-            DATAOUTPATH = 'out/data-green-'+FILENAME_NOEXT+'.csv'
-            summary = pd.read_csv(DATAOUTPATH)
+            #DATAOUTPATH = foundList[0][1] #'out/data-green-'+FILENAME_NOEXT+'.csv'
+            summary = pd.read_csv(dataPath)
             print(summary.head())
 
-        IMAGEOUTPATH = 'out/out_'+FILENAME
-        imgOut = cv2.imread(IMAGEOUTPATH) #, 0) 
+        #IMAGEOUTPATH = 'out/out_'+FILENAME
+        imgOut = cv2.imread(imgPath) #, 0) 
         resizeOut = ResizeWithAspectRatio(imgOut, width=resizeWidth) # Resize by width OR
         cv2.imshow('image2',resizeOut)
         processing = False
