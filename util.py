@@ -15,4 +15,5 @@ def parse_args():
     args = vars(ap.parse_args())
     if args['image'] ==  None and args['directory'] == None:
         raise Exception('Either -i or -d flags must be provided!')
+        
     return args

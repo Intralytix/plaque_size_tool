@@ -8,7 +8,12 @@ import util
 args = util.parse_args()
 FILENAME = args['image']
 FILENAME_NOEXT = os.path.splitext(FILENAME)[0]
-camera = cv2.VideoCapture(0)
+
+source = 0
+camera = cv2.VideoCapture(source)
+if camera is None or not camera.isOpened():
+    raise Exception('Unable to open video source: '+str(source))
+
 processing = False
 count=0
 resizeWidth = 600
@@ -50,11 +55,13 @@ while True:
         #print(CALL)
         #os.system(CALL)
         pst.main(args) #raw output ./out/data-green-FILE.csv, edited image in ./out/out_FILENAME
-        DATAOUTPATH = 'out/data-green-'+FILENAME_NOEXT+'.csv'
-
-        summary = pd.read_csv(DATAOUTPATH)
-        print(summary.head())
-        print(len(summary),'plaques found')
+        
+        numFound = len(summary)
+        print(numFound,'plaques found')
+        if numFound > 0:
+            DATAOUTPATH = 'out/data-green-'+FILENAME_NOEXT+'.csv'
+            summary = pd.read_csv(DATAOUTPATH)
+            print(summary.head())
 
         IMAGEOUTPATH = 'out/out_'+FILENAME
         imgOut = cv2.imread(IMAGEOUTPATH) #, 0) 
