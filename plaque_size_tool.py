@@ -1,31 +1,14 @@
-import argparse
 import imutils
 import cv2
 import numpy as np
 import os
 import pandas as pd
 from PIL import Image, ImageStat, ImageEnhance
+import util
 
 out_dir_path = './out'
 small_plaques = False
 debug_mode = False
-
-
-def parse_args():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-i", "--image", required=False,
-                    help="path to the input image")
-    ap.add_argument("-d", "--directory", required=False,
-                    help="path to the directory with input images")
-    ap.add_argument("-p", "--plate_size", required=False,
-                    help="plate size (mm)")
-    ap.add_argument("-small", "--small_plaque", required=False,
-                    help="for processing small plaques", action = "store_true")
-    ap.add_argument("-debug", "--debug", required=False, action = "store_true")
-    args = vars(ap.parse_args())
-    if args['image'] ==  None and args['directory'] == None:
-        raise Exception('Either -i or -d flags must be provided!')
-    return args
 
 
 def debug_info(file_path, img):
@@ -185,14 +168,14 @@ def write_one_data(out_dir, image_path, prefix, df):
     image_name = os.path.splitext(image_file_name)[0]
     if df.empty != True:
         df.to_csv(path_or_buf=f'{out_dir}/data-{prefix}-{image_name}.csv', index = False,
-                  columns=['INDEX_COL', 'AREA_PXL', 'DIAMETER_PXL', 'AREA_MM2', 'DIAMETER_MM'])
-                  #columns=['INDEX_COL', 'AREA_PXL', 'PERIMETER_PXL', 'ENCL_CENTER', 'ENCL_DIAMETER_PXL'])
+                  #columns=['INDEX_COL', 'AREA_PXL', 'DIAMETER_PXL', 'AREA_MM2', 'DIAMETER_MM'])
+                columns=['INDEX_COL', 'AREA_PXL', 'DIAMETER_PXL', 'AREA_MM2', 'DIAMETER_MM','ENCL_CENTER'])
+                  #columns=['INDEX_COL', 'AREA_PXL', 'DIAMETER_PXL', 'PERIMETER_PXL', 'ENCL_CENTER', 'ENCL_DIAMETER_PXL', 'AREA_MM2', 'DIAMETER_MM'])
 
 
 def calc_AREA_PXL_diff(contour_df):
     encl_AREA_PXL = 3.1415 * (contour_df['ENCL_DIAMETER_PXL'] ** 2) / 4
     return abs(1 - contour_df['AREA_PXL'] / encl_AREA_PXL)
-
 
 def prepare_df(contours):
     pd.options.display.float_format = '{:,.2f}'.format
@@ -206,7 +189,6 @@ def prepare_df(contours):
     df['PERIMETER_PXL'] = df.apply(lambda x: f"{cv2.arcLength(x['HULL'], True):.2f}", axis=1)
 
     return df
-
 
 def filter_contours(contours, image_size):
     df = prepare_df(contours)
@@ -251,7 +233,6 @@ def filter_contours(contours, image_size):
 
     return green_df, red_df, other_df, plate_df
 
-
 def reindex(df):
     dfNew = df.copy()
     dfNew['INDEX_COL'] = df.index
@@ -270,7 +251,6 @@ def unsharp_mask(image, kernel_size=(3, 3), sigma=1.0, amount=1.0, threshold=0):
         low_contrast_mask = np.absolute(image - blurred) < threshold
         np.copyto(sharpened, image, where=low_contrast_mask)
     return sharpened
-
 
 def check_duplicate_centers(obj, obj_df):
     for x in obj_df.iterrows():
@@ -297,7 +277,6 @@ def check_duplicate_diameters(obj, obj_df):
             if close_diameter is True:
                 return True
 
-
 def getPlateSize(image):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     high_contrast = cv2.convertScaleAbs(gray, alpha=None, beta=0)
@@ -313,7 +292,6 @@ def getPlateSize(image):
     plate_df = filter_contours(contours, image_size)
     output = draw_contours(gamma_test, plate_df, None, None)
     # write_images(out_dir_path, output, binary_image, high_contrast, "./out")
-
 
 def check_duplicate_plaques(obj_df):
     for green in obj_df.iterrows():
@@ -356,10 +334,9 @@ def get_brightness( im_file ):
    stat = ImageStat.Stat(im)
    return stat.mean[0]
 
-def main():
+def main(args):
     np.warnings.filterwarnings('ignore', category=np.VisibleDeprecationWarning)
-    args = parse_args()
-
+    
     image_paths = get_image_paths(args['image'], args['directory'])
     plate_size = args['plate_size']
 
@@ -461,4 +438,5 @@ def get_mean_grey_colour(img, contour):
 
 
 if __name__ == '__main__':
-    main()
+    args = util.parse_args()
+    main(args)
