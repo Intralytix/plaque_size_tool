@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Plaque Size Tool
+Comment=Count and size plaques
+Icon=/usr/share/pixmaps/openbox.xpm
+Exec=/usr/bin/python3 /home/pi/github/plaque_size_tool -i recent.jpg --small -p 90
+Type=Application
+Encoding=UTF-8
+Terminal=true
+Categories=None;
+X-keepTerminal=true
