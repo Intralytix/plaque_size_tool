@@ -345,6 +345,8 @@ def main(args):
     small_plaques = args['small_plaque']
     debug_mode = args['debug']
 
+    resList = []
+
     for image_path in image_paths:
         print("Processing " + image_path)
 
@@ -420,7 +422,10 @@ def main(args):
         write_data(out_dir_path, image_path, green_df_copy, red_df_copy, other_df)
         print("Process completed successfully")
         print(str(len(green_df_copy)) + ' plaques were found\n')
+        
+        resList.append(len(green_df_copy))
 
+    return resList
 
 def renumerate_df(df):
     df_new = df.copy()

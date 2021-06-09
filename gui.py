@@ -54,9 +54,8 @@ while True:
         #CALL = "plaque_size_tool.py -i "+FILENAME+" -p 90 -small"
         #print(CALL)
         #os.system(CALL)
-        pst.main(args) #raw output ./out/data-green-FILE.csv, edited image in ./out/out_FILENAME
-        
-        numFound = len(summary)
+        foundList = pst.main(args) #raw output ./out/data-green-FILE.csv, edited image in ./out/out_FILENAME
+        numFound = foundList[0]
         print(numFound,'plaques found')
         if numFound > 0:
             DATAOUTPATH = 'out/data-green-'+FILENAME_NOEXT+'.csv'
