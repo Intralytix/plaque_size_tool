@@ -45,8 +45,10 @@ while True:
         #cv2.imshow('image',gray)
         cv2.imshow('image',resize)
     
+    keyboard = cv2.waitKey(10)& 0xFF
+
     #if count==limit or cv2.waitKey(1)& 0xFF == ord('s'):
-    if cv2.waitKey(1)& 0xFF == ord('s'):
+    if keyboard == ord('s'):
         print("Processing image...")
         processing = True
         cv2.imwrite(FILENAME,image)
@@ -69,7 +71,7 @@ while True:
         processing = False
         #break
     #count +=1
-    if cv2.waitKey(1)& 0xFF == ord('x'):
+    if keyboard == ord('x'):
         break
 
 camera.release()
